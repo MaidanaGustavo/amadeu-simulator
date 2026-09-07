@@ -42,7 +42,8 @@ export interface Sujeito {
   parear: boolean;
   proxTrial: number;
   csFim: number;
-  csAtivo: CS | null;
+  csSomAtivo: boolean;
+  csLuzAtivo: boolean;
   baseAte: number;
   emBase: boolean;
   usNesteTrial: boolean;
@@ -119,7 +120,7 @@ export class Simulacao {
       medo: { som: 0, luz: 0 }, medoBarra: 0,
       exigencia: 1, ultimoReforco: 0, pressoesDesde: 0,
       punir: false, parear: false,
-      proxTrial: 25, csFim: 0, csAtivo: null,
+      proxTrial: 25, csFim: 0, csSomAtivo: false, csLuzAtivo: false,
       baseAte: 0, emBase: false, usNesteTrial: false,
       supBase: null, supCS: null, razaoSup: null, totBase: 0, totCS: 0, ensaios: 0,
     };
@@ -127,7 +128,9 @@ export class Simulacao {
       x: 330, dir: -1, modo: 'agir', ato: 'farejar', timer: 1.2, dur: 1.2,
       alvo: null, destino: 'livre', ultimaPressao: -99, ultimoPerto: -99, passo: 0, congelado: 0,
     };
-    this.mundo = { pelota: false, somAte: 0, luzAte: 0, choqueAte: 0, barraAte: 0 };
+    // barraAte começa em -Infinity (não 0) para que o anel de resposta em Cena.tsx,
+    // cuja janela é calculada por subtração de tempo, não dispare uma pressão fantasma em t=0
+    this.mundo = { pelota: false, somAte: 0, luzAte: 0, choqueAte: 0, barraAte: -Infinity };
     this.registro = { pontos: [{ t: 0, n: 0 }], marcas: [] };
     this.novaExigencia();
   }
@@ -144,8 +147,8 @@ export class Simulacao {
 
   private escolherComportamento(): void {
     const { S, rato, mundo } = this;
-    if (mundo.pelota) { rato.modo = 'mover'; rato.alvo = COMEDOURO_X; rato.destino = 'comedouro'; return; }
     if (rato.congelado > S.t) { this.iniciarAto('congelar', 0.6); return; }
+    if (mundo.pelota) { rato.modo = 'mover'; rato.alvo = COMEDOURO_X; rato.destino = 'comedouro'; return; }
 
     const medo = this.medoAtual();
     const supressao = 1 - 0.85 * medo;
@@ -213,8 +216,14 @@ export class Simulacao {
   }
 
   private fimDoAto(): void {
-    const { rato, mundo } = this;
-    if (rato.ato === 'pressionar') this.registrarPressao();
+    const { S, rato, mundo } = this;
+    if (rato.ato === 'pressionar') {
+      this.registrarPressao();
+      // a punição pode ter chamado aplicarChoque() dentro de registrarPressao(), que já
+      // iniciou o ato 'congelar' com a duração correta — não chamar escolherComportamento()
+      // de novo agora, ou ele reinicia esse mesmo congelamento com 0,6s em vez de 2,2s
+      if (rato.congelado > S.t) return;
+    }
     if (rato.ato === 'comer') { mundo.pelota = false; this.consumirReforco(); }
     this.escolherComportamento();
   }
@@ -246,7 +255,7 @@ export class Simulacao {
   definirEsquema(tipo: TipoEsquema, valor?: number): void {
     const { S } = this;
     S.esquema.tipo = tipo;
-    if (valor !== undefined) S.esquema.valor = Math.max(1, valor);
+    if (valor !== undefined) S.esquema.valor = Math.min(120, Math.max(1, valor));
     S.pressoesDesde = 0; S.ultimoReforco = S.t;
     this.novaExigencia();
   }
@@ -306,8 +315,8 @@ export class Simulacao {
 
   /* ---------------- eventos do experimentador ---------------- */
 
-  tocarSom(dur = 5): void { this.mundo.somAte = this.S.t + dur; this.S.csAtivo = 'som'; this.emitir('som', dur); }
-  acenderLuz(dur = 5): void { this.mundo.luzAte = this.S.t + dur; this.S.csAtivo = 'luz'; this.emitir('luz', dur); }
+  tocarSom(dur = 5): void { this.mundo.somAte = this.S.t + dur; this.S.csSomAtivo = true; this.emitir('som', dur); }
+  acenderLuz(dur = 5): void { this.mundo.luzAte = this.S.t + dur; this.S.csLuzAtivo = true; this.emitir('luz', dur); }
 
   aplicarChoque(daBarra = false): void {
     const { S, rato, mundo } = this;
@@ -338,19 +347,29 @@ export class Simulacao {
 
   alternarPunicao(): boolean { this.S.punir = !this.S.punir; return this.S.punir; }
   alternarPareamento(): boolean {
-    this.S.parear = !this.S.parear;
-    this.S.proxTrial = this.S.t + 8;
-    return this.S.parear;
+    const { S } = this;
+    S.parear = !S.parear;
+    S.proxTrial = S.t + 8;
+    // limpa qualquer linha de base/ensaio em andamento — ligar de novo não deve
+    // herdar contagens de supressão de antes do desligamento
+    S.emBase = false; S.supBase = null; S.supCS = null;
+    return S.parear;
   }
 
   /** Intervalo entre sessões: 15 min de repouso, sujeito volta privado, recuperação espontânea parcial. */
   intervaloEntreSessoes(): void {
-    const { S } = this;
+    const { S, mundo } = this;
     S.t += 900;
     S.frustracao = 0;
     S.saciedade = 0;
     S.forca = Math.min(1, S.forca + 0.12 * (1 - S.forca));
     S.medoBarra *= 0.55;
+    // qualquer CS/ensaio em andamento não sobrevive ao salto de 15 min — encerra
+    // silenciosamente (sem extinção, sem choque agendado, fora da razão de supressão)
+    mundo.somAte = S.t; mundo.luzAte = S.t;
+    S.csSomAtivo = false; S.csLuzAtivo = false; S.usNesteTrial = false;
+    S.emBase = false; S.supBase = null; S.supCS = null;
+    if (S.parear) S.proxTrial = S.t + 8;
   }
 
   /* ---------------- laço ---------------- */
@@ -366,19 +385,19 @@ export class Simulacao {
     S.saciedade *= Math.exp(-dt / 1500);
 
     // fim de um CS: sem US no ensaio → extinção pavloviana
-    if (S.csAtivo === 'som' && mundo.somAte <= S.t) {
+    if (S.csSomAtivo && mundo.somAte <= S.t) {
       if (!S.usNesteTrial) this.extincaoPavloviana('som');
       this.finalizarTesteSupressao();
-      S.csAtivo = null; S.usNesteTrial = false;
+      S.csSomAtivo = false; S.usNesteTrial = false;
     }
-    if (S.csAtivo === 'luz' && mundo.luzAte <= S.t) {
+    if (S.csLuzAtivo && mundo.luzAte <= S.t) {
       if (!S.usNesteTrial) this.extincaoPavloviana('luz');
-      S.csAtivo = null; S.usNesteTrial = false;
+      S.csLuzAtivo = false; S.usNesteTrial = false;
     }
 
     // ensaios automáticos: 10 s de linha de base, 10 s de som, choque no fim do som
     if (S.parear) {
-      if (!S.emBase && S.csAtivo !== 'som' && S.t >= S.proxTrial) {
+      if (!S.emBase && !S.csSomAtivo && S.t >= S.proxTrial) {
         S.emBase = true; S.supBase = 0; S.supCS = null; S.baseAte = S.t + 10;
       }
       if (S.emBase && S.t >= S.baseAte) {
@@ -386,12 +405,13 @@ export class Simulacao {
         this.tocarSom(10); S.csFim = S.t + 10; S.usNesteTrial = false;
         S.proxTrial = S.t + 60 + this.rnd() * 50;
       }
-      if (S.csAtivo === 'som' && !S.usNesteTrial && S.t >= S.csFim - 0.3) {
+      if (S.csSomAtivo && !S.usNesteTrial && S.t >= S.csFim - 0.3) {
         this.aplicarChoque(false);
       }
     }
 
-    if (Math.abs(rato.x - BAR_X) < 70) rato.ultimoPerto = S.t;
+    // raio menor que a distância até o comedouro (58) para não contar "comendo" como "perto da barra"
+    if (Math.abs(rato.x - BAR_X) < 50) rato.ultimoPerto = S.t;
 
     if (rato.modo === 'mover' && rato.alvo !== null) {
       const vel = 62 * (rato.destino === 'comedouro' ? 1.5 : 1);

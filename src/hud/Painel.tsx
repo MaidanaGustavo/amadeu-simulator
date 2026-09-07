@@ -36,7 +36,14 @@ export default function Painel() {
           </select>
           <input type="number" min={1} max={120} aria-label="Valor do esquema" value={snap.valor}
             disabled={snap.esquema === 'CRF' || snap.esquema === 'EXT'}
-            onChange={e => { sim.definirEsquema(snap.esquema, +e.target.value || 1); fotografar(); }} />
+            onChange={e => {
+              // ignora estados intermediários da digitação (ex.: campo vazio ao apagar) —
+              // "" || 1 resetaria o progresso do esquema para um valor não digitado pelo usuário
+              if (e.target.value === '') return;
+              const v = Number(e.target.value);
+              if (!Number.isFinite(v)) return;
+              sim.definirEsquema(snap.esquema, v); fotografar();
+            }} />
           <small>{intervalo(snap.esquema) ? 's' : 'resp.'}</small>
         </div>
         <div className="campo">

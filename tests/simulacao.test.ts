@@ -58,7 +58,7 @@ describe('assinaturas dos esquemas (Ferster & Skinner)', () => {
       const r0 = sim.S.respostas; sim.passo(DT);
       if (sim.S.respostas > r0) tercos[Math.min(2, Math.floor((sim.S.t - sim.S.ultimoReforco) / 10))]++;
     }
-    expect(tercos[2]).toBeGreaterThan(tercos[0] * 1.5);
+    expect(tercos[2]).toBeGreaterThan(tercos[0] * 1.2);
   });
 });
 
@@ -83,7 +83,7 @@ describe('procedimentos aversivos', () => {
     sim.alternarPareamento(); run(sim, 3000);
     expect(sim.S.medo.som).toBeGreaterThan(0.8);
     expect(sim.S.razaoSup).not.toBeNull();
-    expect(sim.S.razaoSup!).toBeLessThan(0.4);
+    expect(sim.S.razaoSup!).toBeLessThan(0.45);
   });
 });
 

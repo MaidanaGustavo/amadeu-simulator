@@ -55,5 +55,11 @@ export const useLab = create<Lab>((set) => ({
   alternarAudio: () => set(s => { audio.ligar(); audio.mudo = s.audioLigado; return { audioLigado: !s.audioLigado }; }),
   alternarAutoGirar: () => set(s => ({ autoGirar: !s.autoGirar })),
   fotografar: () => set({ snap: fotografar() }),
-  novoSujeito: () => { sim.novoSujeito(); set({ rodando: false, snap: fotografar() }); },
+  novoSujeito: () => { sim.novoSujeito(); set({ rodando: false, velocidade: sim.S.velocidade, snap: fotografar() }); },
 }));
+
+// registroVisivel deve reagir a mudanças de largura como useMobile(), não só ao valor inicial
+if (typeof window !== 'undefined') {
+  const consulta = window.matchMedia('(min-width: 721px)');
+  consulta.addEventListener('change', e => useLab.setState({ registroVisivel: e.matches }));
+}

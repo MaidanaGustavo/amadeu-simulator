@@ -301,6 +301,26 @@ function useTexturaPelo() {
 }
 
 /* ---------- rato ---------- */
+// arrays estáveis: literais inline seriam recriados a cada render de Rato, e o
+// useLayoutEffect de Pelagem depende de escala/centro por referência (finding de review)
+const ESCALA_CORPO: [number, number, number] = [1, 0.78, 1.55];
+const CENTRO_CORPO: [number, number, number] = [0, 0.055, 0.06];
+const ESCALA_CABECA: [number, number, number] = [0.9, 0.85, 1.15];
+const CENTRO_CABECA: [number, number, number] = [0, 0, 0];
+
+// no escopo do módulo (não dentro de Rato()) para não remontar as pernas a cada
+// render — recebe a textura e o callback de ref de fora em vez de fechar sobre elas
+function Perna({ x, z, texPelo, onRef }: {
+  x: number; z: number; texPelo: THREE.Texture; onRef: (g: THREE.Group | null) => void;
+}) {
+  return (
+    <group ref={onRef} position={[x, 0.05, z]}>
+      <mesh position-y={-0.025} castShadow><cylinderGeometry args={[0.008, 0.007, 0.05, 10]} /><meshStandardMaterial map={texPelo} color={cor.pelo} roughness={0.95} /></mesh>
+      <mesh position-y={-0.05}><sphereGeometry args={[0.01, 10, 8]} /><meshStandardMaterial color={cor.pele} roughness={0.7} /></mesh>
+    </group>
+  );
+}
+
 function Rato({ mobile }: { mobile: boolean }) {
   const raiz = useRef<THREE.Group>(null);
   const torso = useRef<THREE.Group>(null);
@@ -421,13 +441,6 @@ function Rato({ mobile }: { mobile: boolean }) {
     });
   });
 
-  const Perna = ({ i, x, z }: { i: number; x: number; z: number }) => (
-    <group ref={g => { pernas.current[i] = g; }} position={[x, 0.05, z]}>
-      <mesh position-y={-0.025} castShadow><cylinderGeometry args={[0.008, 0.007, 0.05, 10]} /><meshStandardMaterial map={texPelo} color={cor.pelo} roughness={0.95} /></mesh>
-      <mesh position-y={-0.05}><sphereGeometry args={[0.01, 10, 8]} /><meshStandardMaterial color={cor.pele} roughness={0.7} /></mesh>
-    </group>
-  );
-
   const fiosCorpo = mobile ? 700 : 2200, fiosCabeca = mobile ? 220 : 650;
 
   return (
@@ -437,10 +450,10 @@ function Rato({ mobile }: { mobile: boolean }) {
           <sphereGeometry args={[0.07, 32, 24]} />
           <meshStandardMaterial map={texPelo} bumpMap={texPelo} bumpScale={0.0025} color={cor.pelo} roughness={0.95} />
         </mesh>
-        <Pelagem raio={0.07} escala={[1, 0.78, 1.55]} centro={[0, 0.055, 0.06]} quantidade={fiosCorpo} />
+        <Pelagem raio={0.07} escala={ESCALA_CORPO} centro={CENTRO_CORPO} quantidade={fiosCorpo} />
         <group ref={pescoco} position={[0, 0.075, 0.16]}>
           <mesh scale={[0.9, 0.85, 1.15]} castShadow><sphereGeometry args={[0.043, 24, 18]} /><meshStandardMaterial map={texPelo} bumpMap={texPelo} bumpScale={0.002} color={cor.pelo} roughness={0.95} /></mesh>
-          <Pelagem raio={0.043} escala={[0.9, 0.85, 1.15]} centro={[0, 0, 0]} quantidade={fiosCabeca} comprimento={0.008} penteado={-0.9} />
+          <Pelagem raio={0.043} escala={ESCALA_CABECA} centro={CENTRO_CABECA} quantidade={fiosCabeca} comprimento={0.008} penteado={-0.9} />
           <mesh rotation-x={Math.PI / 2} position={[0, -0.006, 0.06]}><coneGeometry args={[0.024, 0.06, 16]} /><meshStandardMaterial map={texPelo} color={cor.pelo} roughness={0.95} /></mesh>
           <mesh ref={mandibula} position={[0, -0.022, 0.045]}><boxGeometry args={[0.022, 0.008, 0.04]} /><meshStandardMaterial color="#d9cfc4" roughness={0.9} /></mesh>
           <mesh position={[0, -0.006, 0.09]}><sphereGeometry args={[0.008, 12, 10]} /><meshStandardMaterial color={cor.pele} roughness={0.55} /></mesh>
@@ -454,11 +467,11 @@ function Rato({ mobile }: { mobile: boolean }) {
           ))}
           <group ref={bigodesG}>{bigodes.map((l, i) => <primitive key={i} object={l} />)}</group>
         </group>
-        <Perna i={0} x={-0.035} z={0.11} />
-        <Perna i={1} x={0.035} z={0.11} />
+        <Perna x={-0.035} z={0.11} texPelo={texPelo} onRef={g => { pernas.current[0] = g; }} />
+        <Perna x={0.035} z={0.11} texPelo={texPelo} onRef={g => { pernas.current[1] = g; }} />
       </group>
-      <Perna i={2} x={-0.04} z={-0.02} />
-      <Perna i={3} x={0.04} z={-0.02} />
+      <Perna x={-0.04} z={-0.02} texPelo={texPelo} onRef={g => { pernas.current[2] = g; }} />
+      <Perna x={0.04} z={-0.02} texPelo={texPelo} onRef={g => { pernas.current[3] = g; }} />
       <group ref={cauda} position={[0, 0.04, -0.045]}>
         <mesh castShadow><tubeGeometry args={[curvaCauda, 24, 0.006, 8, false]} /><meshStandardMaterial color={cor.pele} roughness={0.7} /></mesh>
       </group>
