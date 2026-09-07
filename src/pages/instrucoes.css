@@ -1,0 +1,27 @@
+
+  :root{--fundo:#15191c;--vidro:rgba(255,255,255,.04);--borda:rgba(255,255,255,.09);--texto:#e6eaea;--fraco:rgba(230,234,234,.6);--ambar:#e0a84a}
+  *{box-sizing:border-box}
+  .instrucoes{min-height:100vh;background:var(--fundo);color:var(--texto);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15.5px;line-height:1.6}
+.instrucoes .wrap{max-width:760px;margin:0 auto;padding:28px 20px 80px}
+.instrucoes nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}
+  .instrucoes nav a{color:var(--texto);text-decoration:none;font-weight:500;border:1px solid var(--borda);border-radius:8px;padding:9px 14px}
+  .instrucoes nav a:hover{background:rgba(255,255,255,.08)}
+  .instrucoes nav a.principal{background:var(--ambar);color:#1a1409;border-color:transparent;font-weight:600}
+.instrucoes h1{font-size:30px;font-weight:600;margin:0 0 6px;letter-spacing:-.01em}
+.instrucoes .sub{color:var(--fraco);margin:0 0 36px}
+.instrucoes h2{font-size:20px;font-weight:600;margin:44px 0 12px;padding-top:24px;border-top:1px solid var(--borda)}
+.instrucoes h3{font-size:15px;font-weight:600;margin:22px 0 6px}
+.instrucoes p{margin:0 0 12px}
+.instrucoes ol, .instrucoes ul{padding-left:22px;margin:0 0 12px}
+.instrucoes li{margin-bottom:8px}
+.instrucoes li b{font-weight:600}
+.instrucoes code, .instrucoes kbd{font-family:"IBM Plex Mono",monospace;font-size:13px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 6px}
+.instrucoes kbd{border:1px solid var(--borda)}
+.instrucoes table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:14px}
+.instrucoes th, .instrucoes td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--borda);vertical-align:top}
+.instrucoes th{font-weight:500;color:var(--fraco)}
+.instrucoes td:first-child{white-space:nowrap;font-weight:500}
+.instrucoes .nota{background:var(--vidro);border:1px solid var(--borda);border-left:3px solid var(--ambar);border-radius:8px;padding:12px 16px;margin:16px 0}
+.instrucoes .eq{font-family:"IBM Plex Mono",monospace;font-size:13.5px;background:var(--vidro);border:1px solid var(--borda);border-radius:8px;padding:10px 14px;margin:10px 0 14px;overflow-x:auto}
+.instrucoes .refs li{color:var(--fraco);font-size:14px}
+.instrucoes footer{margin-top:50px;color:var(--fraco);font-size:13px}
