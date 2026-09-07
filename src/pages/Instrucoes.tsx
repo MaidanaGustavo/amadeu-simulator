@@ -13,9 +13,9 @@ export default function Instrucoes() {
 
 
 <h1>Instruções</h1>
-<p className="sub">Como usar o Amodeu Simulator e o que esperar de cada experimento</p>
+<p className="sub">Como usar o Amadeu Simulator e o que esperar de cada experimento</p>
 
-<p>O Amodeu Simulator simula uma câmara de condicionamento operante — a “caixa de Skinner” — com um rato virtual cujo comportamento é gerado por um modelo matemático de aprendizagem. Você é o experimentador: decide quando entregar comida, que esquema de reforço vigora, quando apresentar som, luz ou choque. O sujeito responde às consequências, não à sua intenção.</p>
+<p>O Amadeu Simulator simula uma câmara de condicionamento operante — a “caixa de Skinner” — com um rato virtual cujo comportamento é gerado por um modelo matemático de aprendizagem. Você é o experimentador: decide quando entregar comida, que esquema de reforço vigora, quando apresentar som, luz ou choque. O sujeito responde às consequências, não à sua intenção.</p>
 
 <div className="nota">O princípio que rege tudo: <b>o reforço fortalece o que o rato estava fazendo no instante em que o reforço chegou</b>, com efeito decrescente quanto maior o atraso. Se ele levantou perto da barra e a comida caiu dois segundos depois, foi “levantar perto da barra” que ganhou força — e não “pressionar”.</div>
 
@@ -101,7 +101,7 @@ export default function Instrucoes() {
   <li>Catania, A. C. (1998). <i>Learning</i> (4ª ed.). Prentice Hall.</li>
 </ul>
 
-<footer>Amodeu Simulator v0.2 · licença MIT · implementação original, sem código, arte ou dados de outros simuladores.</footer>
+<footer>Amadeu Simulator v0.2 · licença MIT · implementação original, sem código, arte ou dados de outros simuladores.</footer>
 
       </div>
     </div>

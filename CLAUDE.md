@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Amodeu Simulator — an open-source 3D simulator of classical and operant conditioning (a Skinner
+Amadeu Simulator — an open-source 3D simulator of classical and operant conditioning (a Skinner
 box with a virtual rat driven by a mathematical learning model), built for teaching
 Experimental Analysis of Behavior. All identifiers, comments, and UI text are in
 **Portuguese** — match that convention in any code you write or edit here.
@@ -17,8 +17,8 @@ npm run dev        # http://localhost:5173
 npm test           # vitest run — behavioral regression tests in tests/simulacao.test.ts
 npm run build      # tsc -b && vite build → dist/ (static, serves from any subpath: IIS, nginx, S3)
 npm run lint        # oxlint
-docker build -t amodeu-simulator .   # prod image: node build stage -> nginx serving dist/
-docker run -p 8080:80 amodeu-simulator
+docker build -t amadeu-simulator .   # prod image: node build stage -> nginx serving dist/
+docker run -p 8080:80 amadeu-simulator
 ```
 
 Run a single test file/case with vitest directly, e.g. `npx vitest run tests/simulacao.test.ts -t "FI apresenta festão"`.

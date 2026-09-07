@@ -1,4 +1,4 @@
-# Amodeu Simulator
+# Amadeu Simulator
 
 Simulador aberto de condicionamento clássico e operante — uma caixa de Skinner em 3D
 com um rato virtual governado por um modelo matemático de aprendizagem. Feito para
@@ -59,8 +59,8 @@ Node e serve `dist/` com nginx (config em `nginx.conf` — fallback de rota,
 cache imutável para os assets com hash, gzip).
 
 ```bash
-docker build -t amodeu-simulator .
-docker run -p 8080:80 amodeu-simulator
+docker build -t amadeu-simulator .
+docker run -p 8080:80 amadeu-simulator
 ```
 
 No Dokploy: criar uma Application apontando para este repositório, tipo de

@@ -1,5 +1,5 @@
 /**
- * Amodeu Simulator — motor comportamental.
+ * Amadeu Simulator — motor comportamental.
  *
  * Modelo: regra delta com gradiente de contiguidade para a força operante,
  * Rescorla-Wagner para associações CS-US, expectativa de reforço (efeito do

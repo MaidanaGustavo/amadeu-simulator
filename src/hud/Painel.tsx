@@ -16,7 +16,7 @@ export default function Painel() {
   const baixarCsv = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([sim.exportarCsv()], { type: 'text/csv;charset=utf-8' }));
-    a.download = 'amodeu-simulator-sessao.csv'; a.click();
+    a.download = 'amadeu-simulator-sessao.csv'; a.click();
   };
 
   return (
