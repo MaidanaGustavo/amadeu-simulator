@@ -52,6 +52,21 @@ store recebe uma nova fotografia — nada da árvore React roda por quadro.
 Referências: Skinner (1938); Estes & Skinner (1941); Ferster & Skinner (1957);
 Rescorla & Wagner (1972); Catania (1998).
 
+## Deploy
+
+Site estático (SPA com `HashRouter`, sem backend). O `Dockerfile` faz build com
+Node e serve `dist/` com nginx (config em `nginx.conf` — fallback de rota,
+cache imutável para os assets com hash, gzip).
+
+```bash
+docker build -t amodeu-simulator .
+docker run -p 8080:80 amodeu-simulator
+```
+
+No Dokploy: criar uma Application apontando para este repositório, tipo de
+build "Dockerfile" (usa o `Dockerfile` da raiz), porta do container `80`.
+Não precisa de variáveis de ambiente nem de banco de dados.
+
 ## Contribuir
 
 Candidatos naturais: discriminação de estímulos (S<sup>D</sup>/S<sup>Δ</sup>),

@@ -17,11 +17,13 @@ npm run dev        # http://localhost:5173
 npm test           # vitest run — behavioral regression tests in tests/simulacao.test.ts
 npm run build      # tsc -b && vite build → dist/ (static, serves from any subpath: IIS, nginx, S3)
 npm run lint        # oxlint
+docker build -t amodeu-simulator .   # prod image: node build stage -> nginx serving dist/
+docker run -p 8080:80 amodeu-simulator
 ```
 
 Run a single test file/case with vitest directly, e.g. `npx vitest run tests/simulacao.test.ts -t "FI apresenta festão"`.
 
-There is no repository (`.git`) initialized in this working copy yet.
+Deployed via Dokploy as a Dockerfile-based Application (see `Dockerfile` / `nginx.conf`); no env vars or database needed — it's a static SPA.
 
 ## Architecture
 
