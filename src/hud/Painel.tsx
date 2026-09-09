@@ -82,6 +82,7 @@ export default function Painel() {
         <Barra rotulo="Medo do som" valor={snap.medoSom} medo />
         <Barra rotulo="Medo da luz" valor={snap.medoLuz} medo />
         <Barra rotulo="Medo da barra" valor={snap.medoBarra} medo />
+        <Barra rotulo="Medo do contexto (pós-choque)" valor={snap.medoContexto} medo />
       </section>
 
       <section>

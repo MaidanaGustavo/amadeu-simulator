@@ -87,7 +87,8 @@ Ferster & Skinner (1957), Rescorla & Wagner (1972), Catania (1998):
 | Partial reinforcement effect | extinction decrement ∝ reinforcement expectancy |
 | Satiation | +0.4pp per pellet; reduces motivation up to 60% |
 | Classical conditioning | Rescorla-Wagner; suppression via Estes-Skinner ratio |
-| Punishment | force ×0.62 and bar-fear +0.30 per contingent shock |
+| Punishment | force ×0.62 and bar-fear +0.30 per contingent shock; bar-fear suppresses both pressing and approaching |
+| Contextual fear | any shock raises `medoContexto`, which suppresses behaviour with no CS present and decays with τ≈55 s |
 
 Any new behavioral phenomenon (stimulus discrimination, concurrent schedules/matching law,
 chaining, avoidance) should land as a pure addition to `Simulacao.ts`, be exercised through

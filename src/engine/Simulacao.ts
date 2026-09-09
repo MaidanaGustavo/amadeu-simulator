@@ -35,6 +35,7 @@ export interface Sujeito {
   saciedade: number;
   medo: Record<CS, number>;
   medoBarra: number;
+  medoContexto: number;
   exigencia: number;
   ultimoReforco: number;
   pressoesDesde: number;
@@ -118,7 +119,7 @@ export class Simulacao {
       respostas: 0, reforcos: 0,
       somComida: 0, forca: 0, perto: 0, frustracao: 0,
       expectativa: 0.5, saciedade: 0,
-      medo: { som: 0, luz: 0 }, medoBarra: 0,
+      medo: { som: 0, luz: 0 }, medoBarra: 0, medoContexto: 0,
       exigencia: 1, ultimoReforco: 0, pressoesDesde: 0,
       punir: false, parear: false, choqueManual: false,
       proxTrial: 25, csFim: 0, csSomAtivo: false, csLuzAtivo: false,
@@ -138,11 +139,16 @@ export class Simulacao {
 
   /* ---------------- comportamento ---------------- */
 
+  /**
+   * Medo em vigor agora: o CS presente, ou — depois de um choque não sinalizado —
+   * o medo eliciado pelo próprio contexto, que decai ao longo de alguns minutos.
+   */
   medoAtual(): number {
     const { S, mundo } = this;
     return Math.max(
       mundo.somAte > S.t ? S.medo.som : 0,
       mundo.luzAte > S.t ? S.medo.luz : 0,
+      S.medoContexto,
     );
   }
 
@@ -173,7 +179,9 @@ export class Simulacao {
       farejar: 0.9,
       limpar: 0.6 * (1 - medo),
       levantar: 0.7,
-      irBarra: (0.35 + 7 * S.perto + 4 * S.forca) * supressao * motivacao,
+      // o medo da barra afasta o sujeito dela, não só impede a pressão: punir a resposta
+      // reduz também a aproximação (esquiva do manipulandum), sem zerá-la de todo
+      irBarra: (0.35 + 7 * S.perto + 4 * S.forca) * supressao * (1 - 0.75 * S.medoBarra) * motivacao,
       pressionar: naZona
         ? (0.05 + 14 * S.forca * modEsquema + 2.5 * S.frustracao) * supressao * (1 - S.medoBarra) * motivacao
         : 0,
@@ -372,6 +380,9 @@ export class Simulacao {
     rato.congelado = S.t + 2.2;
     this.iniciarAto('congelar', 2.2);
     this.emitir('choque');
+    // todo choque deixa medo do próprio contexto: mesmo sem CS, o sujeito segue
+    // suprimido depois que o congelamento acaba, e vai se soltando aos poucos
+    S.medoContexto = Math.min(1, S.medoContexto + 0.45 * (1 - S.medoContexto) + 0.12);
 
     if (daBarra) {
       S.forca *= 0.62;
@@ -411,6 +422,8 @@ export class Simulacao {
     S.saciedade = 0;
     S.forca = Math.min(1, S.forca + 0.12 * (1 - S.forca));
     S.medoBarra *= 0.55;
+    // 15 min fora da caixa dissipam quase todo o medo eliciado pelo contexto
+    S.medoContexto *= 0.08;
     // qualquer CS/ensaio em andamento não sobrevive ao salto de 15 min — encerra
     // silenciosamente (sem extinção, sem choque agendado, fora da razão de supressão)
     mundo.somAte = S.t; mundo.luzAte = S.t; mundo.choqueAte = S.t;
@@ -429,6 +442,7 @@ export class Simulacao {
     S.forca *= esq; S.perto *= esq; S.somComida *= Math.exp(-dt / 3600);
     S.frustracao *= Math.exp(-dt / 22);
     S.medoBarra *= Math.exp(-dt / 260);
+    S.medoContexto *= Math.exp(-dt / 55);
     S.saciedade *= Math.exp(-dt / 1500);
 
     // choque manual sustentado: renova o congelamento e o zumbido enquanto o botão estiver ligado

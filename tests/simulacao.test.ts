@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Simulacao } from '../src/engine/Simulacao';
+import { Simulacao, BAR_X } from '../src/engine/Simulacao';
 
 /** gerador determinístico (mulberry32) para testes reprodutíveis */
 function mulberry32(a: number) {
@@ -12,6 +12,12 @@ const run = (sim: Simulacao, seg: number) => { for (let i = 0; i < seg / DT; i++
 const taxa = (sim: Simulacao, seg: number) => {
   const r = sim.S.respostas, t = sim.S.t; run(sim, seg);
   return (sim.S.respostas - r) / ((sim.S.t - t) / 60);
+};
+/** fração do tempo que o sujeito passa nas imediações da barra */
+const tempoPerto = (sim: Simulacao, seg: number) => {
+  let perto = 0, n = 0;
+  for (let i = 0; i < seg / DT; i++) { sim.passo(DT); n++; if (Math.abs(sim.rato.x - BAR_X) < 50) perto++; }
+  return perto / n;
 };
 /** sujeito com treino ao comedouro e 15 min de CRF */
 function treinado(seed = 7) {
@@ -77,6 +83,33 @@ describe('procedimentos aversivos', () => {
     const antes = taxa(sim, 600);
     sim.alternarPunicao();
     expect(taxa(sim, 600)).toBeLessThan(antes * 0.3);
+  });
+  it('choque não sinalizado suprime a resposta mesmo sem CS presente', () => {
+    // média entre sementes: a taxa numa janela curta é ruidosa demais num sujeito só
+    const medir = (comChoque: boolean) => {
+      let soma = 0;
+      for (const seed of [3, 5, 9]) {
+        const sim = treinado(seed); sim.definirEsquema('VI', 20); run(sim, 600); sim.S.saciedade = 0;
+        if (comChoque) sim.aplicarChoque();
+        soma += taxa(sim, 90);
+      }
+      return soma / 3;
+    };
+    expect(medir(true)).toBeLessThan(medir(false) * 0.8);
+  });
+  it('o medo eliciado pelo contexto decai com o tempo', () => {
+    const sim = treinado(); sim.definirEsquema('VI', 20); run(sim, 300);
+    sim.aplicarChoque();
+    const logoDepois = sim.medoAtual();
+    run(sim, 300);
+    expect(logoDepois).toBeGreaterThan(0.4);
+    expect(sim.medoAtual()).toBeLessThan(logoDepois * 0.2);
+  });
+  it('punição afasta o sujeito da barra, não só reduz a pressão', () => {
+    const sim = treinado(); sim.definirEsquema('VI', 30); run(sim, 600); sim.S.saciedade = 0;
+    const antes = tempoPerto(sim, 600);
+    sim.alternarPunicao(); run(sim, 300); sim.S.saciedade = 0;
+    expect(tempoPerto(sim, 600)).toBeLessThan(antes);
   });
   it('pareamento som→choque produz medo e supressão condicionada', () => {
     const sim = treinado(); sim.definirEsquema('VI', 30); run(sim, 600);

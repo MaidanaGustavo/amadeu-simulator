@@ -7,7 +7,7 @@ export interface Snap {
   t: number; respostas: number; reforcos: number; taxa: number;
   ato: Ato | 'andar'; esquema: TipoEsquema; valor: number; razaoSup: number | null;
   somComida: number; forca: number; perto: number; expectativa: number; saciedade: number;
-  medoSom: number; medoLuz: number; medoBarra: number; punir: boolean; parear: boolean;
+  medoSom: number; medoLuz: number; medoBarra: number; medoContexto: number; punir: boolean; parear: boolean;
   somLigado: boolean; luzLigada: boolean; choqueLigado: boolean;
   ultimaPressao: number;
 }
@@ -38,7 +38,8 @@ const fotografar = (): Snap => {
     ato: rato.modo === 'agir' ? rato.ato : 'andar',
     esquema: S.esquema.tipo, valor: S.esquema.valor, razaoSup: S.razaoSup,
     somComida: S.somComida, forca: S.forca, perto: S.perto, expectativa: S.expectativa, saciedade: S.saciedade,
-    medoSom: S.medo.som, medoLuz: S.medo.luz, medoBarra: S.medoBarra, punir: S.punir, parear: S.parear,
+    medoSom: S.medo.som, medoLuz: S.medo.luz, medoBarra: S.medoBarra, medoContexto: S.medoContexto,
+    punir: S.punir, parear: S.parear,
     somLigado: S.csSomAtivo, luzLigada: S.csLuzAtivo, choqueLigado: S.choqueManual,
     ultimaPressao: rato.ultimaPressao,
   };
