@@ -8,6 +8,7 @@ export interface Snap {
   ato: Ato | 'andar'; esquema: TipoEsquema; valor: number; razaoSup: number | null;
   somComida: number; forca: number; perto: number; expectativa: number; saciedade: number;
   medoSom: number; medoLuz: number; medoBarra: number; punir: boolean; parear: boolean;
+  somLigado: boolean; luzLigada: boolean; choqueLigado: boolean;
 }
 
 interface Lab {
@@ -37,6 +38,7 @@ const fotografar = (): Snap => {
     esquema: S.esquema.tipo, valor: S.esquema.valor, razaoSup: S.razaoSup,
     somComida: S.somComida, forca: S.forca, perto: S.perto, expectativa: S.expectativa, saciedade: S.saciedade,
     medoSom: S.medo.som, medoLuz: S.medo.luz, medoBarra: S.medoBarra, punir: S.punir, parear: S.parear,
+    somLigado: S.csSomAtivo, luzLigada: S.csLuzAtivo, choqueLigado: S.choqueManual,
   };
 };
 
@@ -55,7 +57,7 @@ export const useLab = create<Lab>((set) => ({
   alternarAudio: () => set(s => { audio.ligar(); audio.mudo = s.audioLigado; return { audioLigado: !s.audioLigado }; }),
   alternarAutoGirar: () => set(s => ({ autoGirar: !s.autoGirar })),
   fotografar: () => set({ snap: fotografar() }),
-  novoSujeito: () => { sim.novoSujeito(); set({ rodando: false, velocidade: sim.S.velocidade, snap: fotografar() }); },
+  novoSujeito: () => { audio.tomDesligar(); sim.novoSujeito(); set({ rodando: false, velocidade: sim.S.velocidade, snap: fotografar() }); },
 }));
 
 // registroVisivel deve reagir a mudanças de largura como useMobile(), não só ao valor inicial

@@ -53,6 +53,7 @@
   button.perigo{color:#ffb3a5}
   button.perigo:hover{background:rgba(226,91,63,.18)}
   button.ativo{border-color:var(--ambar);color:var(--ambar)}
+  button.perigo.ativo{border-color:#e25b3f;color:#ffb3a5;background:rgba(226,91,63,.22)}
   button.fantasma{background:transparent;border-color:transparent;color:var(--fraco);padding:8px 10px}
   button.fantasma:hover{color:var(--texto);background:rgba(255,255,255,.06)}
   kbd{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--fraco);border:1px solid var(--borda);border-radius:4px;padding:0 5px;margin-left:4px}

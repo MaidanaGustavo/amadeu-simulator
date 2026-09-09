@@ -215,7 +215,14 @@ function Sons() {
     const offs = [
       sim.on('reforco', () => { if (ok()) audio.dispensador(); }),
       sim.on('pressao', () => { if (ok()) audio.alavanca(); }),
-      sim.on('som', d => { if (ok()) audio.tom(Math.min(10, Number(d) || 5) / Math.max(1, sim.S.velocidade / 5)); }),
+      sim.on('som', d => {
+        const n = Number(d);
+        // desligar precisa acontecer mesmo mudo/acelerado, ou o tom sustentado fica preso tocando
+        if (n === 0) { audio.tomDesligar(); return; }
+        if (!ok()) return;
+        if (n === Infinity) audio.tomLigar();
+        else audio.tom(Math.min(10, n || 5) / Math.max(1, sim.S.velocidade / 5));
+      }),
       sim.on('luz', () => { if (ok()) audio.luz(); }),
       sim.on('choque', () => { if (ok()) { audio.choque(); audio.guincho(1); } }),
       sim.on('chegou', d => { if (ok() && d !== 'livre') audio.passo(); }),
@@ -232,7 +239,7 @@ function Sons() {
     // desbloqueia o contexto de áudio no primeiro gesto, seja qual for
     const gesto = () => { audio.ligar(); window.removeEventListener('pointerdown', gesto); };
     window.addEventListener('pointerdown', gesto);
-    return () => { offs.forEach(f => f()); window.removeEventListener('pointerdown', gesto); };
+    return () => { offs.forEach(f => f()); window.removeEventListener('pointerdown', gesto); audio.tomDesligar(); };
   }, []);
   return null;
 }

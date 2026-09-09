@@ -40,6 +40,7 @@ export interface Sujeito {
   pressoesDesde: number;
   punir: boolean;
   parear: boolean;
+  choqueManual: boolean;
   proxTrial: number;
   csFim: number;
   csSomAtivo: boolean;
@@ -119,7 +120,7 @@ export class Simulacao {
       expectativa: 0.5, saciedade: 0,
       medo: { som: 0, luz: 0 }, medoBarra: 0,
       exigencia: 1, ultimoReforco: 0, pressoesDesde: 0,
-      punir: false, parear: false,
+      punir: false, parear: false, choqueManual: false,
       proxTrial: 25, csFim: 0, csSomAtivo: false, csLuzAtivo: false,
       baseAte: 0, emBase: false, usNesteTrial: false,
       supBase: null, supCS: null, razaoSup: null, totBase: 0, totCS: 0, ensaios: 0,
@@ -318,6 +319,52 @@ export class Simulacao {
   tocarSom(dur = 5): void { this.mundo.somAte = this.S.t + dur; this.S.csSomAtivo = true; this.emitir('som', dur); }
   acenderLuz(dur = 5): void { this.mundo.luzAte = this.S.t + dur; this.S.csLuzAtivo = true; this.emitir('luz', dur); }
 
+  /** Liga/desliga o tom manualmente (botão "Som"): dura até o experimentador desligar. */
+  alternarSom(): boolean {
+    const { S, mundo } = this;
+    if (S.csSomAtivo) {
+      mundo.somAte = S.t;
+      if (!S.usNesteTrial) this.extincaoPavloviana('som');
+      this.finalizarTesteSupressao();
+      S.csSomAtivo = false; S.usNesteTrial = false;
+      this.emitir('som', 0);
+    } else {
+      mundo.somAte = Infinity;
+      S.csSomAtivo = true;
+      this.emitir('som', Infinity);
+    }
+    return S.csSomAtivo;
+  }
+
+  /** Liga/desliga a luz manualmente (botão "Luz"): dura até o experimentador desligar. */
+  alternarLuz(): boolean {
+    const { S, mundo } = this;
+    if (S.csLuzAtivo) {
+      mundo.luzAte = S.t;
+      if (!S.usNesteTrial) this.extincaoPavloviana('luz');
+      S.csLuzAtivo = false; S.usNesteTrial = false;
+      this.emitir('luz', 0);
+    } else {
+      mundo.luzAte = Infinity;
+      S.csLuzAtivo = true;
+      this.emitir('luz', Infinity);
+    }
+    return S.csLuzAtivo;
+  }
+
+  /** Liga/desliga o choque manualmente (botão "Choque"): dura até o experimentador desligar; passo() sustenta o congelamento e o zumbido enquanto ligado. */
+  alternarChoque(): boolean {
+    const { S, mundo } = this;
+    if (S.choqueManual) {
+      S.choqueManual = false;
+      mundo.choqueAte = S.t;
+    } else {
+      S.choqueManual = true;
+      this.aplicarChoque(false);
+    }
+    return S.choqueManual;
+  }
+
   aplicarChoque(daBarra = false): void {
     const { S, rato, mundo } = this;
     mundo.choqueAte = S.t + 0.5;
@@ -366,8 +413,8 @@ export class Simulacao {
     S.medoBarra *= 0.55;
     // qualquer CS/ensaio em andamento não sobrevive ao salto de 15 min — encerra
     // silenciosamente (sem extinção, sem choque agendado, fora da razão de supressão)
-    mundo.somAte = S.t; mundo.luzAte = S.t;
-    S.csSomAtivo = false; S.csLuzAtivo = false; S.usNesteTrial = false;
+    mundo.somAte = S.t; mundo.luzAte = S.t; mundo.choqueAte = S.t;
+    S.csSomAtivo = false; S.csLuzAtivo = false; S.choqueManual = false; S.usNesteTrial = false;
     S.emBase = false; S.supBase = null; S.supCS = null;
     if (S.parear) S.proxTrial = S.t + 8;
   }
@@ -383,6 +430,13 @@ export class Simulacao {
     S.frustracao *= Math.exp(-dt / 22);
     S.medoBarra *= Math.exp(-dt / 260);
     S.saciedade *= Math.exp(-dt / 1500);
+
+    // choque manual sustentado: renova o congelamento e o zumbido enquanto o botão estiver ligado
+    if (S.choqueManual) {
+      mundo.choqueAte = S.t + 0.3;
+      rato.congelado = Math.max(rato.congelado, S.t + 0.3);
+      this.emitir('choque');
+    }
 
     // fim de um CS: sem US no ensaio → extinção pavloviana
     if (S.csSomAtivo && mundo.somAte <= S.t) {

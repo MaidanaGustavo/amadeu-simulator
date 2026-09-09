@@ -13,6 +13,9 @@ export class AudioLab {
   private master: GainNode | null = null;
   private ruidoBuf: AudioBuffer | null = null;
   private ultimos: Record<string, number> = {};
+  private tomOsc: OscillatorNode | null = null;
+  private tomLfo: OscillatorNode | null = null;
+  private tomGain: GainNode | null = null;
   private _mudo = false;
   volumeGlobal = 0.8;
 
@@ -111,6 +114,31 @@ export class AudioLab {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.10, t + 0.03);
     g.gain.setValueAtTime(0.10, t + dur - 0.05); g.gain.linearRampToValueAtTime(0, t + dur);
     o.connect(g).connect(this.master!); o.start(t); lfo.start(t); o.stop(t + dur); lfo.stop(t + dur);
+  }
+
+  /** Liga o tom do CS de forma sustentada (botão manual), até tomDesligar() ser chamado. */
+  tomLigar(): void {
+    if (!this.pronto || this.tomOsc) return;
+    const ctx = this.ctx!, t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.frequency.value = 2800;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 6;
+    const lfoG = ctx.createGain(); lfoG.gain.value = 18;
+    lfo.connect(lfoG).connect(o.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.10, t + 0.03);
+    o.connect(g).connect(this.master!); o.start(t); lfo.start(t);
+    this.tomOsc = o; this.tomLfo = lfo; this.tomGain = g;
+  }
+
+  /** Desliga o tom sustentado iniciado por tomLigar(). Seguro chamar mesmo sem tom ativo. */
+  tomDesligar(): void {
+    if (!this.tomOsc || !this.tomLfo || !this.tomGain || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.tomGain.gain.cancelScheduledValues(t);
+    this.tomGain.gain.setValueAtTime(this.tomGain.gain.value, t);
+    this.tomGain.gain.linearRampToValueAtTime(0, t + 0.05);
+    this.tomOsc.stop(t + 0.06); this.tomLfo.stop(t + 0.06);
+    this.tomOsc = null; this.tomLfo = null; this.tomGain = null;
   }
 
   luz(): void {

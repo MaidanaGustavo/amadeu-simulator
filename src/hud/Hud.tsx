@@ -23,6 +23,7 @@ export default function Hud() {
   const alternarAudio = useLab(s => s.alternarAudio);
   const autoGirar = useLab(s => s.autoGirar);
   const alternarAutoGirar = useLab(s => s.alternarAutoGirar);
+  const fotografar = useLab(s => s.fotografar);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -78,9 +79,9 @@ export default function Hud() {
         <nav className="doca vidro" aria-label="Controles do experimentador">
           <button className={rodando ? '' : 'principal'} onClick={alternarRodando}>{rodando ? 'Pausar' : 'Iniciar'}</button>
           <button onClick={() => sim.entregarReforco()}><span className="rotulo">Dar comida</span><span className="rotulo-curto">Comida</span><kbd>espaço</kbd></button>
-          <button onClick={() => sim.tocarSom()}>Som</button>
-          <button onClick={() => sim.acenderLuz()}>Luz</button>
-          <button className="perigo" onClick={() => sim.aplicarChoque()}>Choque</button>
+          <button className={snap.somLigado ? 'ativo' : ''} aria-pressed={snap.somLigado} onClick={() => { sim.alternarSom(); fotografar(); }}>{snap.somLigado ? 'Parar som' : 'Som'}</button>
+          <button className={snap.luzLigada ? 'ativo' : ''} aria-pressed={snap.luzLigada} onClick={() => { sim.alternarLuz(); fotografar(); }}>{snap.luzLigada ? 'Apagar luz' : 'Luz'}</button>
+          <button className={'perigo' + (snap.choqueLigado ? ' ativo' : '')} aria-pressed={snap.choqueLigado} onClick={() => { sim.alternarChoque(); fotografar(); }}>{snap.choqueLigado ? 'Parar choque' : 'Choque'}</button>
           {!registroVisivel && <button className="fantasma" onClick={alternarRegistro}>Registro</button>}
         </nav>
       </div>

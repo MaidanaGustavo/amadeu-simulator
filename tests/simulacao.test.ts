@@ -87,6 +87,43 @@ describe('procedimentos aversivos', () => {
   });
 });
 
+describe('controles manuais (som/luz/choque)', () => {
+  it('alternarSom liga indefinidamente e só desliga no segundo clique', () => {
+    const sim = new Simulacao(mulberry32(1));
+    expect(sim.alternarSom()).toBe(true);
+    expect(sim.S.csSomAtivo).toBe(true);
+    run(sim, 30);
+    expect(sim.S.csSomAtivo).toBe(true); // não desliga sozinho
+    expect(sim.alternarSom()).toBe(false);
+    expect(sim.S.csSomAtivo).toBe(false);
+  });
+  it('desligar o som sem choque pareado produz extinção pavloviana', () => {
+    const sim = new Simulacao(mulberry32(3));
+    // condiciona medo emparelhando som+choque manualmente algumas vezes
+    for (let i = 0; i < 8; i++) { sim.alternarSom(); sim.alternarChoque(); run(sim, 0.1); sim.alternarChoque(); sim.alternarSom(); run(sim, 3); }
+    const medoAntes = sim.S.medo.som;
+    expect(medoAntes).toBeGreaterThan(0.3);
+    sim.alternarSom(); run(sim, 5); sim.alternarSom(); // desta vez liga e desliga sem choque
+    expect(sim.S.medo.som).toBeLessThan(medoAntes);
+  });
+  it('choque manual sustenta o congelamento e o zumbido enquanto ligado', () => {
+    const sim = new Simulacao(mulberry32(2));
+    expect(sim.alternarChoque()).toBe(true);
+    run(sim, 2);
+    expect(sim.mundo.choqueAte).toBeGreaterThan(sim.S.t); // ainda ligado
+    expect(sim.rato.congelado).toBeGreaterThan(sim.S.t);
+    expect(sim.alternarChoque()).toBe(false);
+    run(sim, 1);
+    expect(sim.mundo.choqueAte).toBeLessThanOrEqual(sim.S.t); // desligou
+  });
+  it('choque manual associa medo ao som presente, como o choque contingente', () => {
+    const sim = new Simulacao(mulberry32(3));
+    sim.alternarSom();
+    sim.alternarChoque();
+    expect(sim.S.medo.som).toBeGreaterThan(0);
+  });
+});
+
 describe('utilidades', () => {
   it('exporta CSV com cabeçalho e eventos', () => {
     const sim = treinado(); const csv = sim.exportarCsv().split('\n');
