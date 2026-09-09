@@ -6,6 +6,7 @@
     --fraco: rgba(230,234,234,.55);
     --ambar: #e0a84a;
     --choque: #e25b3f;
+    --verde: #7fcf8a;
     --raio: 10px;
   }
   *{box-sizing:border-box}
@@ -28,6 +29,7 @@
   .marca h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.01em}
   .marca p{margin:2px 0 0;color:var(--fraco);font-size:12.5px}
   .marca p b{color:var(--ambar);font-weight:500}
+  .marca p b.comendo{color:var(--verde)}
   .estado{display:flex;gap:2px;padding:6px}
   .estado div{padding:4px 12px;text-align:center;min-width:64px}
   .estado b{display:block;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:16px}

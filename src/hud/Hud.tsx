@@ -48,7 +48,7 @@ export default function Hud() {
         <div className="topo">
           <div className="marca vidro">
             <h1>Amadeu Simulator</h1>
-            <p><b>{nomesAto[snap.ato]}</b> · <span>{esquema}</span></p>
+            <p><b className={snap.ato === 'comer' ? 'comendo' : ''}>{nomesAto[snap.ato]}</b> · <span>{esquema}</span></p>
           </div>
           <div className="estado vidro">
             <div><b>{fmt(snap.t)}</b><span>sessão</span></div>
