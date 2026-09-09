@@ -4,6 +4,15 @@ import Barra from './Barra';
 
 const intervalo = (t: TipoEsquema) => t === 'FI' || t === 'VI';
 
+const descricaoEsquema: Record<TipoEsquema, string> = {
+  CRF: 'Toda pressão na barra é reforçada.',
+  FR: 'Reforça a cada N pressões — ex.: FR 10 reforça a 10ª pressão desde o último reforço.',
+  VR: 'Reforça após um número variável de pressões, em média N a cada vez.',
+  FI: 'Reforça a primeira pressão após I segundos desde o último reforço.',
+  VI: 'Reforça a primeira pressão após um intervalo variável, em média I segundos.',
+  EXT: 'Nenhuma pressão é reforçada — usado para estudar a extinção.',
+};
+
 export default function Painel() {
   const aberto = useLab(s => s.painelAberto);
   const alternarPainel = useLab(s => s.alternarPainel);
@@ -27,12 +36,12 @@ export default function Painel() {
         <h3>Esquema de reforço</h3>
         <div className="campo">
           <select aria-label="Tipo de esquema" value={snap.esquema} onChange={e => { sim.definirEsquema(e.target.value as TipoEsquema); fotografar(); }}>
-            <option value="CRF">Contínuo (CRF)</option>
-            <option value="FR">Razão fixa (FR)</option>
-            <option value="VR">Razão variável (VR)</option>
-            <option value="FI">Intervalo fixo (FI)</option>
-            <option value="VI">Intervalo variável (VI)</option>
-            <option value="EXT">Extinção</option>
+            <option value="CRF" title={descricaoEsquema.CRF}>Reforço contínuo (CRF)</option>
+            <option value="FR" title={descricaoEsquema.FR}>Razão fixa (FR)</option>
+            <option value="VR" title={descricaoEsquema.VR}>Razão variável (VR)</option>
+            <option value="FI" title={descricaoEsquema.FI}>Intervalo fixo (FI)</option>
+            <option value="VI" title={descricaoEsquema.VI}>Intervalo variável (VI)</option>
+            <option value="EXT" title={descricaoEsquema.EXT}>Extinção (EXT)</option>
           </select>
           <input type="number" min={1} max={120} aria-label="Valor do esquema" value={snap.valor}
             disabled={snap.esquema === 'CRF' || snap.esquema === 'EXT'}
@@ -46,6 +55,7 @@ export default function Painel() {
             }} />
           <small>{intervalo(snap.esquema) ? 's' : 'resp.'}</small>
         </div>
+        <p className="dica">{descricaoEsquema[snap.esquema]}</p>
         <div className="campo">
           <label htmlFor="vel">Velocidade da simulação</label>
           <select id="vel" value={velocidade} onChange={e => definirVelocidade(+e.target.value)}>

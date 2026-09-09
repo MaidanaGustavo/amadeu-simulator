@@ -9,6 +9,7 @@
     --raio: 10px;
   }
   *{box-sizing:border-box}
+  html{color-scheme:dark}
   html,body,#root{margin:0;height:100%;background:#15191c;color:var(--texto);
     font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14px;line-height:1.4}
   .laboratorio{position:fixed;inset:0;overflow:hidden}
@@ -70,9 +71,11 @@
   .campo{display:flex;align-items:center;gap:8px;margin-bottom:10px}
   .campo label{flex:1;font-size:13px}
   select,input[type=number]{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--texto);
-    background:rgba(255,255,255,.05);border:1px solid var(--borda);border-radius:6px;padding:7px 8px}
+    background:#1c2226;border:1px solid var(--borda);border-radius:6px;padding:7px 8px}
   input[type=number]{width:64px}
+  select option{background:#1c2226;color:var(--texto)}
   .campo small{color:var(--fraco);font-size:11.5px;min-width:34px}
+  .dica{color:var(--fraco);font-size:11.5px;line-height:1.4;margin:-4px 0 10px}
   .lista{display:flex;flex-direction:column;gap:8px}
   .lista button{justify-content:space-between;width:100%}
 
