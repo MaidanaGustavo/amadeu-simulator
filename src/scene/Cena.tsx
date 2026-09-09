@@ -130,6 +130,10 @@ function Aparato() {
   const escalaPelota = useRef(0);
   const faisca = useRef<THREE.Mesh>(null);
   const faiscaMat = useRef<THREE.MeshBasicMaterial>(null);
+  const NUM_MIGALHAS = 6;
+  const migalhas = useRef<(THREE.Mesh | null)[]>([]);
+  const migalhaState = useRef(Array.from({ length: NUM_MIGALHAS }, () => ({ vida: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 })));
+  const mordidaAnterior = useRef(-1);
 
   useFrame((state, delta) => {
     const k = Math.min(1, 10 * delta);
@@ -151,14 +155,41 @@ function Aparato() {
     if (luzPt.current) luzPt.current.intensity = lerp(luzPt.current.intensity, luzOn ? 0.9 : 0, k);
     const somOn = mundo.somAte > S.t;
     if (alte.current) alte.current.emissiveIntensity = lerp(alte.current.emissiveIntensity, somOn ? 0.5 + 0.3 * Math.sin(state.clock.elapsedTime * 16) : 0, k);
-    // pelota: cresce ao cair no comedouro, encolhe conforme é mordida durante o ato de comer
+    // pelota: cresce ao cair no comedouro, encolhe em mordidas discretas (não uma rampa contínua)
+    // durante o ato de comer, para ficar visualmente óbvio que está sendo mastigada aos poucos
     const comendo = rato.modo === 'agir' && rato.ato === 'comer';
     const progComer = comendo ? 1 - rato.timer / rato.dur : 0;
-    const alvoEscala = mundo.pelota ? Math.max(0, 1 - progComer * 1.15) : 0;
-    escalaPelota.current = lerp(escalaPelota.current, alvoEscala, Math.min(1, 12 * delta));
+    const MORDIDAS = 5;
+    const mordidaAtual = comendo ? Math.min(MORDIDAS, Math.floor(progComer * MORDIDAS)) : 0;
+    if (comendo && mordidaAtual > mordidaAnterior.current) {
+      // a cada mordida, solta farelos que caem e desaparecem perto do comedouro
+      for (let n = 0; n < 2; n++) {
+        const s = migalhaState.current.find(e => e.vida <= 0);
+        if (!s) break;
+        s.vida = 0.55;
+        s.x = (Math.random() - 0.5) * 0.01; s.y = 0.01; s.z = (Math.random() - 0.5) * 0.01;
+        s.vx = (Math.random() - 0.5) * 0.06; s.vy = 0.04 + Math.random() * 0.03; s.vz = (Math.random() - 0.5) * 0.06;
+      }
+    }
+    mordidaAnterior.current = comendo ? mordidaAtual : -1;
+    const alvoEscala = mundo.pelota ? Math.max(0, 1 - mordidaAtual / MORDIDAS) : 0;
+    escalaPelota.current = lerp(escalaPelota.current, alvoEscala, Math.min(1, 16 * delta));
     if (pelota.current) {
       pelota.current.visible = escalaPelota.current > 0.02;
       pelota.current.scale.setScalar(escalaPelota.current);
+    }
+    // física simples dos farelos: sobem, caem com gravidade leve e somem
+    for (let i = 0; i < NUM_MIGALHAS; i++) {
+      const s = migalhaState.current[i], m = migalhas.current[i];
+      if (!m) continue;
+      if (s.vida > 0) {
+        s.vida -= delta;
+        s.vy -= 0.15 * delta;
+        s.x += s.vx * delta; s.y += s.vy * delta; s.z += s.vz * delta;
+        m.visible = s.vida > 0;
+        m.position.set(HX + s.x, 0.032 + Math.max(0, s.y), PZ + 0.07 + s.z);
+        (m.material as THREE.MeshStandardMaterial).opacity = Math.max(0, Math.min(1, s.vida / 0.55));
+      } else if (m.visible) m.visible = false;
     }
   });
 
@@ -186,8 +217,15 @@ function Aparato() {
         <boxGeometry args={[0.09, 0.055, 0.075]} /><meshStandardMaterial color="#1b1f22" roughness={0.9} />
       </mesh>
       <mesh ref={pelota} position={[HX, 0.032, PZ + 0.07]} castShadow visible={false}>
-        <sphereGeometry args={[0.012, 16, 12]} /><meshStandardMaterial color={cor.pelota} roughness={0.8} />
+        <sphereGeometry args={[0.015, 16, 12]} /><meshStandardMaterial color={cor.pelota} roughness={0.8} />
       </mesh>
+      {/* farelos: pipocam a cada mordida para reforçar visualmente que a pelota está sendo comida */}
+      {Array.from({ length: NUM_MIGALHAS }).map((_, i) => (
+        <mesh key={i} ref={m => { migalhas.current[i] = m; }} visible={false}>
+          <boxGeometry args={[0.0035, 0.0035, 0.0035]} />
+          <meshStandardMaterial color={cor.pelota} roughness={0.9} transparent opacity={1} />
+        </mesh>
+      ))}
       {/* luz-sinal */}
       <mesh position={[LX, 0.33, PZ + 0.02]}>
         <sphereGeometry args={[0.02, 20, 16]} />
@@ -395,7 +433,7 @@ function Rato({ mobile }: { mobile: boolean }) {
     switch (ato) {
       case 'levantar': pitch = -1.05 * Math.sqrt(Math.sin(Math.min(1, prog) * Math.PI)); cabPitch = -0.15; break;
       case 'pressionar': pitch = -0.95; cabPitch = 0.25 + 0.2 * Math.sin(prog * Math.PI); break;
-      case 'comer': pitch = 0.22; cabPitch = 0.55 + 0.06 * Math.sin(r.fase * 4); boca = 0.5 + 0.5 * Math.sin(r.fase * 9); break;
+      case 'comer': pitch = 0.22; cabPitch = 0.55 + 0.11 * Math.sin(r.fase * 4); boca = 0.5 + 0.5 * Math.sin(r.fase * 9); break;
       case 'limpar': pitch = -0.35; cabYaw = 0.9 * Math.sin(r.fase * 1.3); cabPitch = 0.35 + 0.1 * Math.sin(r.fase * 5); break;
       case 'congelar': esc = 0.86; cabPitch = 0.1; break;
       case 'farejar': cabPitch = 0.15 + 0.12 * Math.sin(r.fase * 5); cabYaw = 0.25 * Math.sin(r.fase * 1.7); break;
@@ -419,8 +457,12 @@ function Rato({ mobile }: { mobile: boolean }) {
       raiz.current.rotation.set(0, r.yaw, r.roll); raiz.current.scale.y = r.esc;
     }
     if (torso.current) torso.current.rotation.x = r.pitch;
-    if (pescoco.current) { pescoco.current.rotation.x = r.cabPitch; pescoco.current.rotation.y = r.cabYaw; }
-    if (mandibula.current) mandibula.current.rotation.x = 0.35 * r.boca;
+    if (pescoco.current) {
+      pescoco.current.rotation.x = r.cabPitch; pescoco.current.rotation.y = r.cabYaw;
+      // "engolida" sutil na cabeça a cada fechada de mandíbula, só durante o ato de comer
+      pescoco.current.scale.setScalar(ato === 'comer' ? 1 + 0.06 * r.boca : 1);
+    }
+    if (mandibula.current) mandibula.current.rotation.x = 0.42 * r.boca;
     if (cauda.current) { cauda.current.rotation.y = 0.35 * Math.sin(r.fase * 0.6) + (andando ? 0.2 * Math.sin(r.fase) : 0); cauda.current.rotation.x = 0.1 * Math.sin(r.fase * 0.4); }
     if (corpo.current) { corpo.current.scale.set(resp, 0.78 * resp, 1.55); corpo.current.position.y = 0.055 + (andando ? 0.004 * Math.abs(Math.sin(r.fase)) : 0); }
 
