@@ -32,7 +32,8 @@
   .marca p b.comendo{color:var(--verde)}
   .estado{display:flex;gap:2px;padding:6px}
   .estado div{padding:4px 12px;text-align:center;min-width:64px}
-  .estado b{display:block;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:16px}
+  .estado b{display:block;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:16px;transition:color .18s}
+  .estado div.pulso b{color:var(--ambar)}
   .estado span{font-size:10.5px;color:var(--fraco)}
   .acoes-topo{display:flex;gap:8px;align-items:flex-start}
 

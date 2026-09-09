@@ -41,6 +41,8 @@ export default function Hud() {
 
   const esquema = nomesEsquema[snap.esquema] + (snap.esquema === 'CRF' || snap.esquema === 'EXT' ? '' :
     ` ${snap.valor}${snap.esquema === 'FI' || snap.esquema === 'VI' ? ' s' : ''}`);
+  // realce discreto do contador logo após uma pressão; sai do snapshot, sem timer nem re-render extra
+  const pressaoRecente = snap.t - snap.ultimaPressao < 0.4;
 
   return (
     <>
@@ -52,7 +54,7 @@ export default function Hud() {
           </div>
           <div className="estado vidro">
             <div><b>{fmt(snap.t)}</b><span>sessão</span></div>
-            <div><b>{snap.respostas}</b><span>pressões</span></div>
+            <div className={pressaoRecente ? 'pulso' : ''}><b>{snap.respostas}</b><span>pressões</span></div>
             <div><b>{snap.reforcos}</b><span>reforços</span></div>
             <div><b>{num(snap.taxa)}</b><span>resp/min</span></div>
             <div className="opcional"><b>{snap.razaoSup === null ? '—' : snap.razaoSup.toFixed(2).replace('.', ',')}</b><span>supressão</span></div>

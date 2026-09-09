@@ -130,6 +130,7 @@ function Aparato() {
   const escalaPelota = useRef(0);
   const faisca = useRef<THREE.Mesh>(null);
   const faiscaMat = useRef<THREE.MeshBasicMaterial>(null);
+  const alavancaMat = useRef<THREE.MeshStandardMaterial>(null);
   const NUM_MIGALHAS = 6;
   const migalhas = useRef<(THREE.Mesh | null)[]>([]);
   const migalhaState = useRef(Array.from({ length: NUM_MIGALHAS }, () => ({ vida: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 })));
@@ -141,15 +142,20 @@ function Aparato() {
     const pressionada = mundo.barraAte > S.t || (rato.modo === 'agir' && rato.ato === 'pressionar' && rato.timer < rato.dur * 0.7);
     if (alavanca.current) alavanca.current.rotation.x = lerp(alavanca.current.rotation.x, pressionada ? 0.32 : 0, k);
     // anel de resposta: um "ping" que se expande e apaga a cada pressão, visível mesmo com o áudio mudo
-    const DUR_FAISCA = 0.4;
+    const DUR_FAISCA = 0.5;
     const desdeAPressao = S.t - mundo.barraAte + 0.25;
     const pFaisca = desdeAPressao / DUR_FAISCA;
     const faiscaAtiva = pFaisca >= 0 && pFaisca < 1;
     if (faisca.current) {
       faisca.current.visible = faiscaAtiva;
-      if (faiscaAtiva) faisca.current.scale.setScalar(lerp(0.5, 2.2, pFaisca));
+      if (faiscaAtiva) faisca.current.scale.setScalar(lerp(0.45, 2.8, pFaisca));
     }
-    if (faiscaMat.current) faiscaMat.current.opacity = faiscaAtiva ? 0.75 * (1 - pFaisca) : 0;
+    if (faiscaMat.current) faiscaMat.current.opacity = faiscaAtiva ? 0.95 * (1 - pFaisca) * (1 - pFaisca) : 0;
+    // a própria alavanca acende por um instante: marca a resposta no ponto exato onde ela ocorre
+    if (alavancaMat.current) {
+      alavancaMat.current.emissiveIntensity = lerp(alavancaMat.current.emissiveIntensity,
+        faiscaAtiva ? 1.4 * (1 - pFaisca) : 0, Math.min(1, 16 * delta));
+    }
     const luzOn = mundo.luzAte > S.t;
     if (luz.current) luz.current.emissiveIntensity = lerp(luz.current.emissiveIntensity, luzOn ? 1.6 : 0, k);
     if (luzPt.current) luzPt.current.intensity = lerp(luzPt.current.intensity, luzOn ? 0.9 : 0, k);
@@ -201,12 +207,14 @@ function Aparato() {
       </mesh>
       <group ref={alavanca} position={[LX, 0.13, PZ + 0.02]}>
         <mesh position-z={0.055} castShadow>
-          <boxGeometry args={[0.04, 0.011, 0.11]} /><meshStandardMaterial color="#c9cfd3" metalness={0.9} roughness={0.25} />
+          <boxGeometry args={[0.04, 0.011, 0.11]} />
+          <meshStandardMaterial ref={alavancaMat} color="#c9cfd3" metalness={0.9} roughness={0.25}
+            emissive={cor.ambar} emissiveIntensity={0} />
         </mesh>
       </group>
       {/* anel de resposta: pisca sobre a alavanca a cada pressão registrada */}
       <mesh ref={faisca} position={[LX, 0.145, PZ + 0.06]} rotation-x={-Math.PI / 2} visible={false}>
-        <ringGeometry args={[0.014, 0.026, 28]} />
+        <ringGeometry args={[0.015, 0.032, 32]} />
         <meshBasicMaterial ref={faiscaMat} color="#fff2c8" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* comedouro */}

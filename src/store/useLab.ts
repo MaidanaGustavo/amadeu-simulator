@@ -9,6 +9,7 @@ export interface Snap {
   somComida: number; forca: number; perto: number; expectativa: number; saciedade: number;
   medoSom: number; medoLuz: number; medoBarra: number; punir: boolean; parear: boolean;
   somLigado: boolean; luzLigada: boolean; choqueLigado: boolean;
+  ultimaPressao: number;
 }
 
 interface Lab {
@@ -39,6 +40,7 @@ const fotografar = (): Snap => {
     somComida: S.somComida, forca: S.forca, perto: S.perto, expectativa: S.expectativa, saciedade: S.saciedade,
     medoSom: S.medo.som, medoLuz: S.medo.luz, medoBarra: S.medoBarra, punir: S.punir, parear: S.parear,
     somLigado: S.csSomAtivo, luzLigada: S.csLuzAtivo, choqueLigado: S.choqueManual,
+    ultimaPressao: rato.ultimaPressao,
   };
 };
 
