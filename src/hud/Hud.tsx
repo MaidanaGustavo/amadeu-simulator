@@ -28,6 +28,8 @@ export default function Hud() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (/INPUT|SELECT|TEXTAREA/.test((document.activeElement as HTMLElement)?.tagName ?? '')) return;
+      // repetição automática do navegador ao segurar a tecla não deve virar pressões extras
+      if (e.repeat) { if (e.code === 'Space') e.preventDefault(); return; }
       if (e.code === 'Space') { e.preventDefault(); sim.entregarReforco(); }
       if (e.key === 'p' || e.key === 'P') alternarRodando();
       if (e.key === 'm' || e.key === 'M') alternarAudio();
